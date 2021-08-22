@@ -10,6 +10,7 @@ python-dotenv = "*"
 tensorflow = "*"
 google-cloud-texttospeech = "*"
 playsound = "*"
+imutils = "*"
 
 [dev-packages]
 

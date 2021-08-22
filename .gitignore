@@ -4,3 +4,5 @@ cached/
 .env
 
 key.json
+
+__pycache__/

@@ -10,50 +10,10 @@ from google.cloud import texttospeech
 import threading
 import os.path
 from playsound import playsound
-    
-load_dotenv()  
+from imutils.video import WebcamVideoStream
+import imutils
+from fps import FPS
 
-
-class ThreadedCamera(object):
-    def __init__(self, source = 0):
-
-        self.capture = cv2.VideoCapture(source)
-
-        self.thread = Thread(target = self.update, args = ())
-        self.thread.daemon = True
-        self.thread.start()
-
-        self.status = False
-        self.frame  = None
-
-    def update(self):
-        while True:
-            if self.capture.isOpened():
-                (self.status, self.frame) = self.capture.read()
-                #print(self.status)
-
-    def grab_frame(self):
-        if self.status:
-            return self.frame
-        return None  
-    def release(self):
-        self.capture.release()
-
-
-def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
-    dim = None
-    (h, w) = image.shape[:2]
-
-    if width is None and height is None:
-        return image
-    if width is None:
-        r = height / float(h)
-        dim = (int(w * r), height)
-    else:
-        r = width / float(w)
-        dim = (width, int(h * r))
-
-    return cv2.resize(image, dim, interpolation=inter)
 
 def do_predictions(pipeline, shrunk):
     color = (255, 0, 0)
@@ -93,40 +53,37 @@ def textToSpeech(text):
         )
         with open(path, "wb") as out:
             out.write(response.audio_content)
-            print(f'Audio content written to file "{path}"')
-    else:
-        print (f'using cache for {text}')
+            print(f'Fetched Audio content written to file "{path}"')
+    # else:
+    #     print (f'using cache for {text}')
     playsound(path)
     
 
 
 capture_url = os.environ.get("STREAM_URL")
 print(capture_url)
-cam = ThreadedCamera(capture_url)
+cam = WebcamVideoStream(capture_url).start()
+
 #time.sleep(1)
 pipeline = keras_ocr.pipeline.Pipeline(max_size=1000)
-interval = 5
-counter = 0
-start_time = time.time()
+fps = FPS(5).start()
 try:
     while True:
         
-        frame = cam.grab_frame()
-        shrunk = ResizeWithAspectRatio(frame, 1000)
+        frame = cam.read()
+        shrunk =  imutils.resize(frame, 1000)
         text = do_predictions(pipeline, shrunk)
         cv2.imshow('frame', shrunk)
-        counter+=1
-        if (time.time() - start_time) > interval :
-            print("FPS: ", counter / (time.time() - start_time))
-            counter = 0
-            start_time = time.time()
+        if (fps.updateAndPrintAndReset()):
             if (text is not None):
-                print(text)
+                #print(text)
                 th = threading.Thread(target=textToSpeech, args=(text,))
                 th.start()
         if cv2.waitKey(1) == ord('q'):
             break
 except Exception as exc:
     print(f'Exception: {exc}')
-cam.release()
+    
+cam.stop()
+cam.stream.release()
 cv2.destroyAllWindows()
