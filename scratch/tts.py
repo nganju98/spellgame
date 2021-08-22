@@ -5,17 +5,17 @@ Note: ssml must be well-formed according to:
 """
 from google.auth.credentials import Credentials
 from google.cloud import texttospeech
-from pydub import AudioSegment
-from pydub.playback import play
+#from pydub import AudioSegment
+#from pydub.playback import play
 import io
 from playsound import playsound
-playsound("output.mp3")
+
 # Instantiates a client
 #Credentials c = Credentials()
 client = texttospeech.TextToSpeechClient.from_service_account_json('key.json')
 
 # Set the text input to be synthesized
-synthesis_input = texttospeech.SynthesisInput(text="Hello, World!")
+synthesis_input = texttospeech.SynthesisInput(text="You spelled 'hello'")
 
 # Build the voice request, select the language code ("en-US") and the ssml
 # voice gender ("neutral")
@@ -39,7 +39,10 @@ response = client.synthesize_speech(
 #song = AudioSegment.from_file("output.mp3", format="mp3")
 #play(song)
 # The response's audio_content is binary.
-with open("output.mp3", "wb") as out:
+path = "./cached/you_spelled.mp3"
+with open(path, "wb") as out:
     # Write the response to the output file.
     out.write(response.audio_content)
-    print('Audio content written to file "output.mp3"')
+    print(f'Audio content written to file {path}')
+
+playsound(path)

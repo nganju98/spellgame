@@ -93,7 +93,7 @@ def textToSpeech(text):
             print(f'Audio content written to file "{path}"')
     else:
         print (f'using cache for {text}')
-    
+    playsound('./cached/you_spelled.mp3')
     playsound(path)
     
 
