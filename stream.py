@@ -41,7 +41,8 @@ def textToSpeech(text):
     path = f'./cached/{text}.mp3'
     if (not os.path.isfile(path)): 
         client = texttospeech.TextToSpeechClient.from_service_account_json('key.json')
-        synthesis_input = texttospeech.SynthesisInput(text=f'You spelled ":{text}"')
+        hyphenated = "-".join([char for char in text])
+        synthesis_input = texttospeech.SynthesisInput(text=f'{hyphenated} spells "{text}"')
         voice = texttospeech.VoiceSelectionParams(
             language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
         )
@@ -83,7 +84,7 @@ try:
             break
 except Exception as exc:
     print(f'Exception: {exc}')
-    
+
 cam.stop()
 cam.stream.release()
 cv2.destroyAllWindows()

@@ -13,9 +13,11 @@ from playsound import playsound
 # Instantiates a client
 #Credentials c = Credentials()
 client = texttospeech.TextToSpeechClient.from_service_account_json('key.json')
-
+text = "pet"
+hyphenated = "-".join([char for char in text])
 # Set the text input to be synthesized
-synthesis_input = texttospeech.SynthesisInput(text="You spelled 'hello'")
+print(hyphenated)
+synthesis_input = texttospeech.SynthesisInput(text=f'{hyphenated} spells "{text}"')
 
 # Build the voice request, select the language code ("en-US") and the ssml
 # voice gender ("neutral")
@@ -39,7 +41,7 @@ response = client.synthesize_speech(
 #song = AudioSegment.from_file("output.mp3", format="mp3")
 #play(song)
 # The response's audio_content is binary.
-path = "./cached/you_spelled.mp3"
+path = "./output.mp3"
 with open(path, "wb") as out:
     # Write the response to the output file.
     out.write(response.audio_content)
