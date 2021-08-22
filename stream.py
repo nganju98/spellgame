@@ -78,7 +78,7 @@ def textToSpeech(text):
     path = f'./cached/{text}.mp3'
     if (not os.path.isfile(path)): 
         client = texttospeech.TextToSpeechClient.from_service_account_json('key.json')
-        synthesis_input = texttospeech.SynthesisInput(text=text)
+        synthesis_input = texttospeech.SynthesisInput(text=f'You spelled ":{text}"')
         voice = texttospeech.VoiceSelectionParams(
             language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
         )
@@ -93,7 +93,6 @@ def textToSpeech(text):
             print(f'Audio content written to file "{path}"')
     else:
         print (f'using cache for {text}')
-    playsound('./you_spelled.mp3')
     playsound(path)
     
 
