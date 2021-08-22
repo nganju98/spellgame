@@ -63,7 +63,7 @@ def do_predictions(pipeline, shrunk):
     prediction_groups = pipeline.recognize([shrunk])
     
     groups = prediction_groups[0]
-    text = None
+    
     for group in groups:
 
         point = np.int32( group[1][0])
@@ -72,7 +72,10 @@ def do_predictions(pipeline, shrunk):
         rect = np.int32([group[1]])
         #print(rect)
         cv2.polylines(shrunk, rect, isClosed=True, color=color, thickness=thickness)
-    return text
+    if (len(groups) > 0):
+        return groups[0][0]
+    else:
+        return None
 
 def textToSpeech(text):
     path = f'./cached/{text}.mp3'
