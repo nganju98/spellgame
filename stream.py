@@ -2,6 +2,7 @@ from threading import Thread
 import time
 import numpy as np
 import cv2
+import cv2.aruco as aruco
 from dotenv import load_dotenv
 import os
 import keras_ocr
@@ -14,6 +15,15 @@ from imutils.video import WebcamVideoStream
 import imutils
 from fps import FPS
 
+def findArucoMarkers(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    key = getattr(aruco, f'DICT_4X4_50')
+    arucoDict = aruco.Dictionary_get(key)
+    arucoParam = aruco.DetectorParameters_create()
+    bboxs, ids, rejected = aruco.detectMarkers(gray, arucoDict, parameters = arucoParam)
+    #print(ids)
+    aruco.drawDetectedMarkers(img, bboxs) 
+    return (ids is not None)
 
 def do_predictions(pipeline, shrunk):
     color = (255, 0, 0)
@@ -55,8 +65,8 @@ def textToSpeech(text):
         with open(path, "wb") as out:
             out.write(response.audio_content)
             print(f'Fetched Audio content written to file "{path}"')
-    # else:
-    #     print (f'using cache for {text}')
+    else:
+        print (f'using cache for {text}')
     playsound(path)
     
 
@@ -68,18 +78,30 @@ cam = WebcamVideoStream(capture_url).start()
 #time.sleep(1)
 pipeline = keras_ocr.pipeline.Pipeline(max_size=1000)
 fps = FPS(5).start()
+alreadyPredicted = False
 try:
     while True:
         
         frame = cam.read()
         shrunk =  imutils.resize(frame, 1000)
-        text = do_predictions(pipeline, shrunk)
-        cv2.imshow('frame', shrunk)
-        if (fps.updateAndPrintAndReset()):
+        
+        arucoFound = findArucoMarkers(shrunk)
+        
+        #print (arucoFound)
+        if (arucoFound):
+            alreadyPredicted = False
+        if (not arucoFound and not alreadyPredicted):
+            text = do_predictions(pipeline, shrunk)
             if (text is not None):
                 #print(text)
                 th = threading.Thread(target=textToSpeech, args=(text,))
                 th.start()
+            alreadyPredicted = True
+           
+         
+        cv2.imshow('frame', shrunk)
+        fps.updateAndPrintAndReset()
+            
         if cv2.waitKey(1) == ord('q'):
             break
 except Exception as exc:

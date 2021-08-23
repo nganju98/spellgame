@@ -11,6 +11,7 @@ tensorflow = "*"
 google-cloud-texttospeech = "*"
 playsound = "*"
 imutils = "*"
+opencv-contrib-python = "*"
 
 [dev-packages]
 
